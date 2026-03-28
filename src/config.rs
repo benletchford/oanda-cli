@@ -1,0 +1,75 @@
+use std::env;
+
+#[derive(Debug, Clone)]
+pub enum Environment {
+    Practice,
+    Live,
+}
+
+impl Environment {
+    pub fn base_url(&self) -> &str {
+        match self {
+            Environment::Practice => "https://api-fxpractice.oanda.com",
+            Environment::Live => "https://api-fxtrade.oanda.com",
+        }
+    }
+
+    pub fn stream_url(&self) -> &str {
+        match self {
+            Environment::Practice => "https://stream-fxpractice.oanda.com",
+            Environment::Live => "https://stream-fxtrade.oanda.com",
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Config {
+    pub token: Option<String>,
+    pub account_id: Option<String>,
+    pub environment: Environment,
+    pub datetime_format: Option<String>,
+    pub pretty: bool,
+}
+
+impl Config {
+    pub fn from_args(
+        token: Option<String>,
+        account_id: Option<String>,
+        environment: Option<String>,
+        datetime_format: Option<String>,
+        pretty: bool,
+    ) -> Result<Self, String> {
+        let token = token.or_else(|| env::var("OANDA_TOKEN").ok());
+
+        let account_id = account_id.or_else(|| env::var("OANDA_ACCOUNT_ID").ok());
+
+        let env_str = environment.or_else(|| env::var("OANDA_ENVIRONMENT").ok());
+        let environment = match env_str.as_deref() {
+            Some("live") => Environment::Live,
+            Some("practice") | None => Environment::Practice,
+            Some(other) => return Err(format!("Invalid environment: {other}. Use 'practice' or 'live'")),
+        };
+
+        let datetime_format = datetime_format.or_else(|| env::var("OANDA_DATETIME_FORMAT").ok());
+
+        Ok(Config {
+            token,
+            account_id,
+            environment,
+            datetime_format,
+            pretty,
+        })
+    }
+
+    pub fn require_token(&self) -> Result<&str, String> {
+        self.token
+            .as_deref()
+            .ok_or_else(|| "Token required: pass --token or set OANDA_TOKEN".into())
+    }
+
+    pub fn require_account_id(&self) -> Result<&str, String> {
+        self.account_id
+            .as_deref()
+            .ok_or_else(|| "Account ID required: pass --account-id or set OANDA_ACCOUNT_ID".into())
+    }
+}
