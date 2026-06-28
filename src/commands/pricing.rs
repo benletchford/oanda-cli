@@ -93,52 +93,132 @@ pub enum PricingCommand {
     },
 }
 
-pub async fn execute(client: &OandaClient, config: &Config, cmd: PricingCommand) -> Result<(), String> {
+pub async fn execute(
+    client: &OandaClient,
+    config: &Config,
+    cmd: PricingCommand,
+) -> Result<(), String> {
     let id = config.require_account_id()?;
     match cmd {
-        PricingCommand::Get { instruments, since, include_units_available, include_home_conversions } => {
+        PricingCommand::Get {
+            instruments,
+            since,
+            include_units_available,
+            include_home_conversions,
+        } => {
             let mut query: Vec<(&str, &str)> = vec![("instruments", &instruments)];
-            if let Some(ref v) = since { query.push(("since", v)); }
-            if include_units_available { query.push(("includeUnitsAvailable", "true")); }
-            if include_home_conversions { query.push(("includeHomeConversions", "true")); }
-            client.get(&format!("/v3/accounts/{id}/pricing"), &query).await
+            if let Some(ref v) = since {
+                query.push(("since", v));
+            }
+            if include_units_available {
+                query.push(("includeUnitsAvailable", "true"));
+            }
+            if include_home_conversions {
+                query.push(("includeHomeConversions", "true"));
+            }
+            client
+                .get(&format!("/v3/accounts/{id}/pricing"), &query)
+                .await
         }
-        PricingCommand::Stream { instruments, snapshot, include_home_conversions } => {
+        PricingCommand::Stream {
+            instruments,
+            snapshot,
+            include_home_conversions,
+        } => {
             let mut query: Vec<(&str, &str)> = vec![("instruments", &instruments)];
-            if snapshot { query.push(("snapshot", "true")); }
-            if include_home_conversions { query.push(("includeHomeConversions", "true")); }
-            client.stream(&format!("/v3/accounts/{id}/pricing/stream"), &query).await
+            if snapshot {
+                query.push(("snapshot", "true"));
+            }
+            if include_home_conversions {
+                query.push(("includeHomeConversions", "true"));
+            }
+            client
+                .stream(&format!("/v3/accounts/{id}/pricing/stream"), &query)
+                .await
         }
         PricingCommand::CandlesLatest {
-            candle_specifications, units, smooth,
-            daily_alignment, alignment_timezone, weekly_alignment,
+            candle_specifications,
+            units,
+            smooth,
+            daily_alignment,
+            alignment_timezone,
+            weekly_alignment,
         } => {
-            let mut query: Vec<(&str, &str)> = vec![("candleSpecifications", &candle_specifications)];
-            if let Some(ref v) = units { query.push(("units", v)); }
-            if smooth { query.push(("smooth", "true")); }
-            if let Some(ref v) = daily_alignment { query.push(("dailyAlignment", v)); }
-            if let Some(ref v) = alignment_timezone { query.push(("alignmentTimezone", v)); }
-            if let Some(ref v) = weekly_alignment { query.push(("weeklyAlignment", v)); }
-            client.get(&format!("/v3/accounts/{id}/candles/latest"), &query).await
+            let mut query: Vec<(&str, &str)> =
+                vec![("candleSpecifications", &candle_specifications)];
+            if let Some(ref v) = units {
+                query.push(("units", v));
+            }
+            if smooth {
+                query.push(("smooth", "true"));
+            }
+            if let Some(ref v) = daily_alignment {
+                query.push(("dailyAlignment", v));
+            }
+            if let Some(ref v) = alignment_timezone {
+                query.push(("alignmentTimezone", v));
+            }
+            if let Some(ref v) = weekly_alignment {
+                query.push(("weeklyAlignment", v));
+            }
+            client
+                .get(&format!("/v3/accounts/{id}/candles/latest"), &query)
+                .await
         }
         PricingCommand::Candles {
-            instrument, price, granularity, count, from, to,
-            smooth, include_first, daily_alignment, alignment_timezone,
-            weekly_alignment, units,
+            instrument,
+            price,
+            granularity,
+            count,
+            from,
+            to,
+            smooth,
+            include_first,
+            daily_alignment,
+            alignment_timezone,
+            weekly_alignment,
+            units,
         } => {
             let mut query: Vec<(&str, &str)> = vec![];
-            if let Some(ref v) = price { query.push(("price", v)); }
-            if let Some(ref v) = granularity { query.push(("granularity", v)); }
-            if let Some(ref v) = count { query.push(("count", v)); }
-            if let Some(ref v) = from { query.push(("from", v)); }
-            if let Some(ref v) = to { query.push(("to", v)); }
-            if smooth { query.push(("smooth", "true")); }
-            if let Some(ref v) = include_first { query.push(("includeFirst", v)); }
-            if let Some(ref v) = daily_alignment { query.push(("dailyAlignment", v)); }
-            if let Some(ref v) = alignment_timezone { query.push(("alignmentTimezone", v)); }
-            if let Some(ref v) = weekly_alignment { query.push(("weeklyAlignment", v)); }
-            if let Some(ref v) = units { query.push(("units", v)); }
-            client.get(&format!("/v3/accounts/{id}/instruments/{instrument}/candles"), &query).await
+            if let Some(ref v) = price {
+                query.push(("price", v));
+            }
+            if let Some(ref v) = granularity {
+                query.push(("granularity", v));
+            }
+            if let Some(ref v) = count {
+                query.push(("count", v));
+            }
+            if let Some(ref v) = from {
+                query.push(("from", v));
+            }
+            if let Some(ref v) = to {
+                query.push(("to", v));
+            }
+            if smooth {
+                query.push(("smooth", "true"));
+            }
+            if let Some(ref v) = include_first {
+                query.push(("includeFirst", v));
+            }
+            if let Some(ref v) = daily_alignment {
+                query.push(("dailyAlignment", v));
+            }
+            if let Some(ref v) = alignment_timezone {
+                query.push(("alignmentTimezone", v));
+            }
+            if let Some(ref v) = weekly_alignment {
+                query.push(("weeklyAlignment", v));
+            }
+            if let Some(ref v) = units {
+                query.push(("units", v));
+            }
+            client
+                .get(
+                    &format!("/v3/accounts/{id}/instruments/{instrument}/candles"),
+                    &query,
+                )
+                .await
         }
     }
 }

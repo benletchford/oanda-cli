@@ -1,11 +1,6 @@
-mod client;
-mod commands;
-mod config;
-
 use clap::{Parser, Subcommand};
 
-use client::OandaClient;
-use config::Config;
+use oanda_cli::{Config, OandaClient, commands};
 
 #[derive(Parser)]
 #[command(name = "oanda", about = "CLI for the OANDA v20 REST API")]
@@ -111,9 +106,13 @@ async fn main() {
                 Command::Instrument { cmd } => commands::instrument::execute(&client, cmd).await,
                 Command::Order { cmd } => commands::order::execute(&client, &config, cmd).await,
                 Command::Trade { cmd } => commands::trade::execute(&client, &config, cmd).await,
-                Command::Position { cmd } => commands::position::execute(&client, &config, cmd).await,
+                Command::Position { cmd } => {
+                    commands::position::execute(&client, &config, cmd).await
+                }
                 Command::Pricing { cmd } => commands::pricing::execute(&client, &config, cmd).await,
-                Command::Transaction { cmd } => commands::transaction::execute(&client, &config, cmd).await,
+                Command::Transaction { cmd } => {
+                    commands::transaction::execute(&client, &config, cmd).await
+                }
                 Command::Labs { .. } => unreachable!(),
             }
         }

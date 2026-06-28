@@ -56,35 +56,85 @@ pub enum TradeCommand {
     },
 }
 
-pub async fn execute(client: &OandaClient, config: &Config, cmd: TradeCommand) -> Result<(), String> {
+pub async fn execute(
+    client: &OandaClient,
+    config: &Config,
+    cmd: TradeCommand,
+) -> Result<(), String> {
     let id = config.require_account_id()?;
     match cmd {
-        TradeCommand::List { ids, state, instrument, count, before_id } => {
+        TradeCommand::List {
+            ids,
+            state,
+            instrument,
+            count,
+            before_id,
+        } => {
             let mut query: Vec<(&str, &str)> = vec![];
-            if let Some(ref v) = ids { query.push(("ids", v)); }
-            if let Some(ref v) = state { query.push(("state", v)); }
-            if let Some(ref v) = instrument { query.push(("instrument", v)); }
-            if let Some(ref v) = count { query.push(("count", v)); }
-            if let Some(ref v) = before_id { query.push(("beforeID", v)); }
-            client.get(&format!("/v3/accounts/{id}/trades"), &query).await
+            if let Some(ref v) = ids {
+                query.push(("ids", v));
+            }
+            if let Some(ref v) = state {
+                query.push(("state", v));
+            }
+            if let Some(ref v) = instrument {
+                query.push(("instrument", v));
+            }
+            if let Some(ref v) = count {
+                query.push(("count", v));
+            }
+            if let Some(ref v) = before_id {
+                query.push(("beforeID", v));
+            }
+            client
+                .get(&format!("/v3/accounts/{id}/trades"), &query)
+                .await
         }
         TradeCommand::Open => {
-            client.get(&format!("/v3/accounts/{id}/openTrades"), &[]).await
+            client
+                .get(&format!("/v3/accounts/{id}/openTrades"), &[])
+                .await
         }
         TradeCommand::Get { trade_specifier } => {
-            client.get(&format!("/v3/accounts/{id}/trades/{trade_specifier}"), &[]).await
+            client
+                .get(&format!("/v3/accounts/{id}/trades/{trade_specifier}"), &[])
+                .await
         }
-        TradeCommand::Close { trade_specifier, body } => {
+        TradeCommand::Close {
+            trade_specifier,
+            body,
+        } => {
             let body = body.map(|b| read_body(Some(b))).transpose()?;
-            client.put(&format!("/v3/accounts/{id}/trades/{trade_specifier}/close"), body).await
+            client
+                .put(
+                    &format!("/v3/accounts/{id}/trades/{trade_specifier}/close"),
+                    body,
+                )
+                .await
         }
-        TradeCommand::ClientExtensions { trade_specifier, body } => {
+        TradeCommand::ClientExtensions {
+            trade_specifier,
+            body,
+        } => {
             let body = read_body(body)?;
-            client.put(&format!("/v3/accounts/{id}/trades/{trade_specifier}/clientExtensions"), Some(body)).await
+            client
+                .put(
+                    &format!("/v3/accounts/{id}/trades/{trade_specifier}/clientExtensions"),
+                    Some(body),
+                )
+                .await
         }
-        TradeCommand::Orders { trade_specifier, body } => {
+        TradeCommand::Orders {
+            trade_specifier,
+            body,
+        } => {
             let body = read_body(body)?;
-            client.put(&format!("/v3/accounts/{id}/trades/{trade_specifier}/orders"), Some(body)).await
+            client
+                .put(
+                    &format!("/v3/accounts/{id}/trades/{trade_specifier}/orders"),
+                    Some(body),
+                )
+                .await
         }
     }
 }

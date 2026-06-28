@@ -59,38 +59,87 @@ pub enum OrderCommand {
     },
 }
 
-pub async fn execute(client: &OandaClient, config: &Config, cmd: OrderCommand) -> Result<(), String> {
+pub async fn execute(
+    client: &OandaClient,
+    config: &Config,
+    cmd: OrderCommand,
+) -> Result<(), String> {
     let id = config.require_account_id()?;
     match cmd {
         OrderCommand::Create { body } => {
             let body = read_body(body)?;
-            client.post(&format!("/v3/accounts/{id}/orders"), body).await
+            client
+                .post(&format!("/v3/accounts/{id}/orders"), body)
+                .await
         }
-        OrderCommand::List { ids, state, instrument, count, before_id } => {
+        OrderCommand::List {
+            ids,
+            state,
+            instrument,
+            count,
+            before_id,
+        } => {
             let mut query: Vec<(&str, &str)> = vec![];
-            if let Some(ref v) = ids { query.push(("ids", v)); }
-            if let Some(ref v) = state { query.push(("state", v)); }
-            if let Some(ref v) = instrument { query.push(("instrument", v)); }
-            if let Some(ref v) = count { query.push(("count", v)); }
-            if let Some(ref v) = before_id { query.push(("beforeID", v)); }
-            client.get(&format!("/v3/accounts/{id}/orders"), &query).await
+            if let Some(ref v) = ids {
+                query.push(("ids", v));
+            }
+            if let Some(ref v) = state {
+                query.push(("state", v));
+            }
+            if let Some(ref v) = instrument {
+                query.push(("instrument", v));
+            }
+            if let Some(ref v) = count {
+                query.push(("count", v));
+            }
+            if let Some(ref v) = before_id {
+                query.push(("beforeID", v));
+            }
+            client
+                .get(&format!("/v3/accounts/{id}/orders"), &query)
+                .await
         }
         OrderCommand::Pending => {
-            client.get(&format!("/v3/accounts/{id}/pendingOrders"), &[]).await
+            client
+                .get(&format!("/v3/accounts/{id}/pendingOrders"), &[])
+                .await
         }
         OrderCommand::Get { order_specifier } => {
-            client.get(&format!("/v3/accounts/{id}/orders/{order_specifier}"), &[]).await
+            client
+                .get(&format!("/v3/accounts/{id}/orders/{order_specifier}"), &[])
+                .await
         }
-        OrderCommand::Replace { order_specifier, body } => {
+        OrderCommand::Replace {
+            order_specifier,
+            body,
+        } => {
             let body = read_body(body)?;
-            client.put(&format!("/v3/accounts/{id}/orders/{order_specifier}"), Some(body)).await
+            client
+                .put(
+                    &format!("/v3/accounts/{id}/orders/{order_specifier}"),
+                    Some(body),
+                )
+                .await
         }
         OrderCommand::Cancel { order_specifier } => {
-            client.put(&format!("/v3/accounts/{id}/orders/{order_specifier}/cancel"), None).await
+            client
+                .put(
+                    &format!("/v3/accounts/{id}/orders/{order_specifier}/cancel"),
+                    None,
+                )
+                .await
         }
-        OrderCommand::ClientExtensions { order_specifier, body } => {
+        OrderCommand::ClientExtensions {
+            order_specifier,
+            body,
+        } => {
             let body = read_body(body)?;
-            client.put(&format!("/v3/accounts/{id}/orders/{order_specifier}/clientExtensions"), Some(body)).await
+            client
+                .put(
+                    &format!("/v3/accounts/{id}/orders/{order_specifier}/clientExtensions"),
+                    Some(body),
+                )
+                .await
         }
     }
 }

@@ -50,32 +50,73 @@ pub enum TransactionCommand {
     Stream,
 }
 
-pub async fn execute(client: &OandaClient, config: &Config, cmd: TransactionCommand) -> Result<(), String> {
+pub async fn execute(
+    client: &OandaClient,
+    config: &Config,
+    cmd: TransactionCommand,
+) -> Result<(), String> {
     let id = config.require_account_id()?;
     match cmd {
-        TransactionCommand::List { from, to, page_size, type_filter } => {
+        TransactionCommand::List {
+            from,
+            to,
+            page_size,
+            type_filter,
+        } => {
             let mut query: Vec<(&str, &str)> = vec![];
-            if let Some(ref v) = from { query.push(("from", v)); }
-            if let Some(ref v) = to { query.push(("to", v)); }
-            if let Some(ref v) = page_size { query.push(("pageSize", v)); }
-            if let Some(ref v) = type_filter { query.push(("type", v)); }
-            client.get(&format!("/v3/accounts/{id}/transactions"), &query).await
+            if let Some(ref v) = from {
+                query.push(("from", v));
+            }
+            if let Some(ref v) = to {
+                query.push(("to", v));
+            }
+            if let Some(ref v) = page_size {
+                query.push(("pageSize", v));
+            }
+            if let Some(ref v) = type_filter {
+                query.push(("type", v));
+            }
+            client
+                .get(&format!("/v3/accounts/{id}/transactions"), &query)
+                .await
         }
         TransactionCommand::Get { transaction_id } => {
-            client.get(&format!("/v3/accounts/{id}/transactions/{transaction_id}"), &[]).await
+            client
+                .get(
+                    &format!("/v3/accounts/{id}/transactions/{transaction_id}"),
+                    &[],
+                )
+                .await
         }
-        TransactionCommand::Idrange { from, to, type_filter } => {
+        TransactionCommand::Idrange {
+            from,
+            to,
+            type_filter,
+        } => {
             let mut query: Vec<(&str, &str)> = vec![("from", &from), ("to", &to)];
-            if let Some(ref v) = type_filter { query.push(("type", v)); }
-            client.get(&format!("/v3/accounts/{id}/transactions/idrange"), &query).await
+            if let Some(ref v) = type_filter {
+                query.push(("type", v));
+            }
+            client
+                .get(&format!("/v3/accounts/{id}/transactions/idrange"), &query)
+                .await
         }
-        TransactionCommand::Sinceid { id: since_id, type_filter } => {
+        TransactionCommand::Sinceid {
+            id: since_id,
+            type_filter,
+        } => {
             let mut query: Vec<(&str, &str)> = vec![("id", &since_id)];
-            if let Some(ref v) = type_filter { query.push(("type", v)); }
-            client.get(&format!("/v3/accounts/{id}/transactions/sinceid"), &query).await
+            if let Some(ref v) = type_filter {
+                query.push(("type", v));
+            }
+            client
+                .get(&format!("/v3/accounts/{id}/transactions/sinceid"), &query)
+                .await
         }
         TransactionCommand::Stream => {
-            client.stream(&format!("/v3/accounts/{id}/transactions/stream"), &[]).await
+            client
+                .stream(&format!("/v3/accounts/{id}/transactions/stream"), &[])
+                .await
         }
     }
 }

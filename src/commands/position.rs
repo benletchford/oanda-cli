@@ -24,21 +24,36 @@ pub enum PositionCommand {
     },
 }
 
-pub async fn execute(client: &OandaClient, config: &Config, cmd: PositionCommand) -> Result<(), String> {
+pub async fn execute(
+    client: &OandaClient,
+    config: &Config,
+    cmd: PositionCommand,
+) -> Result<(), String> {
     let id = config.require_account_id()?;
     match cmd {
         PositionCommand::List => {
-            client.get(&format!("/v3/accounts/{id}/positions"), &[]).await
+            client
+                .get(&format!("/v3/accounts/{id}/positions"), &[])
+                .await
         }
         PositionCommand::Open => {
-            client.get(&format!("/v3/accounts/{id}/openPositions"), &[]).await
+            client
+                .get(&format!("/v3/accounts/{id}/openPositions"), &[])
+                .await
         }
         PositionCommand::Get { instrument } => {
-            client.get(&format!("/v3/accounts/{id}/positions/{instrument}"), &[]).await
+            client
+                .get(&format!("/v3/accounts/{id}/positions/{instrument}"), &[])
+                .await
         }
         PositionCommand::Close { instrument, body } => {
             let body = read_body(body)?;
-            client.put(&format!("/v3/accounts/{id}/positions/{instrument}/close"), Some(body)).await
+            client
+                .put(
+                    &format!("/v3/accounts/{id}/positions/{instrument}/close"),
+                    Some(body),
+                )
+                .await
         }
     }
 }

@@ -31,11 +31,13 @@ pub enum AccountCommand {
     },
 }
 
-pub async fn execute(client: &OandaClient, config: &Config, cmd: AccountCommand) -> Result<(), String> {
+pub async fn execute(
+    client: &OandaClient,
+    config: &Config,
+    cmd: AccountCommand,
+) -> Result<(), String> {
     match cmd {
-        AccountCommand::List => {
-            client.get("/v3/accounts", &[]).await
-        }
+        AccountCommand::List => client.get("/v3/accounts", &[]).await,
         AccountCommand::Get => {
             let id = config.require_account_id()?;
             client.get(&format!("/v3/accounts/{id}"), &[]).await
@@ -50,19 +52,27 @@ pub async fn execute(client: &OandaClient, config: &Config, cmd: AccountCommand)
             if let Some(ref i) = instruments {
                 query.push(("instruments", i.as_str()));
             }
-            client.get(&format!("/v3/accounts/{id}/instruments"), &query).await
+            client
+                .get(&format!("/v3/accounts/{id}/instruments"), &query)
+                .await
         }
         AccountCommand::Configure { body } => {
             let id = config.require_account_id()?;
             let body = read_body(body)?;
-            client.patch(&format!("/v3/accounts/{id}/configuration"), body).await
+            client
+                .patch(&format!("/v3/accounts/{id}/configuration"), body)
+                .await
         }
-        AccountCommand::Changes { since_transaction_id } => {
+        AccountCommand::Changes {
+            since_transaction_id,
+        } => {
             let id = config.require_account_id()?;
-            client.get(
-                &format!("/v3/accounts/{id}/changes"),
-                &[("sinceTransactionID", since_transaction_id.as_str())],
-            ).await
+            client
+                .get(
+                    &format!("/v3/accounts/{id}/changes"),
+                    &[("sinceTransactionID", since_transaction_id.as_str())],
+                )
+                .await
         }
     }
 }

@@ -44,23 +44,53 @@ pub enum InstrumentCommand {
 pub async fn execute(client: &OandaClient, cmd: InstrumentCommand) -> Result<(), String> {
     match cmd {
         InstrumentCommand::Candles {
-            instrument, price, granularity, count, from, to,
-            smooth, include_first, daily_alignment, alignment_timezone,
+            instrument,
+            price,
+            granularity,
+            count,
+            from,
+            to,
+            smooth,
+            include_first,
+            daily_alignment,
+            alignment_timezone,
             weekly_alignment,
         } => {
             let mut query: Vec<(&str, &str)> = vec![];
-            if let Some(ref v) = price { query.push(("price", v)); }
-            if let Some(ref v) = granularity { query.push(("granularity", v)); }
-            if let Some(ref v) = count { query.push(("count", v)); }
-            if let Some(ref v) = from { query.push(("from", v)); }
-            if let Some(ref v) = to { query.push(("to", v)); }
-            if smooth { query.push(("smooth", "true")); }
-            if let Some(ref v) = include_first { query.push(("includeFirst", v)); }
-            if let Some(ref v) = daily_alignment { query.push(("dailyAlignment", v)); }
-            if let Some(ref v) = alignment_timezone { query.push(("alignmentTimezone", v)); }
-            if let Some(ref v) = weekly_alignment { query.push(("weeklyAlignment", v)); }
+            if let Some(ref v) = price {
+                query.push(("price", v));
+            }
+            if let Some(ref v) = granularity {
+                query.push(("granularity", v));
+            }
+            if let Some(ref v) = count {
+                query.push(("count", v));
+            }
+            if let Some(ref v) = from {
+                query.push(("from", v));
+            }
+            if let Some(ref v) = to {
+                query.push(("to", v));
+            }
+            if smooth {
+                query.push(("smooth", "true"));
+            }
+            if let Some(ref v) = include_first {
+                query.push(("includeFirst", v));
+            }
+            if let Some(ref v) = daily_alignment {
+                query.push(("dailyAlignment", v));
+            }
+            if let Some(ref v) = alignment_timezone {
+                query.push(("alignmentTimezone", v));
+            }
+            if let Some(ref v) = weekly_alignment {
+                query.push(("weeklyAlignment", v));
+            }
 
-            client.get(&format!("/v3/instruments/{instrument}/candles"), &query).await
+            client
+                .get(&format!("/v3/instruments/{instrument}/candles"), &query)
+                .await
         }
     }
 }

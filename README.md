@@ -40,6 +40,65 @@ oanda [OPTIONS] <COMMAND>
 
 Add `--pretty` to any command for formatted JSON output.
 
+## Library usage
+
+The package also exposes a Rust library crate named `oanda_cli`.
+
+```toml
+[dependencies]
+oanda-cli = "0.1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+```
+
+```rust
+use oanda_cli::{CandlesParams, Config, OandaClient, PricingGetParams};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let token = std::env::var("OANDA_TOKEN")?;
+    let config = Config::new(token, std::env::var("OANDA_ACCOUNT_ID")?);
+    let client = OandaClient::new(&config)?;
+
+    let summary = client.account().summary().await?;
+    let prices = client
+        .pricing()
+        .get_with(
+            "EUR_USD,USD_JPY",
+            PricingGetParams::default().include_units_available(),
+        )
+        .await?;
+    let candles = client
+        .instrument("EUR_USD")
+        .candles_with(CandlesParams::default().granularity("H1").count(10))
+        .await?;
+
+    println!("{summary}");
+    println!("{prices}");
+    println!("{candles}");
+    Ok(())
+}
+```
+
+The resource helpers mirror the CLI groups: `accounts`, `account`, `instrument`, `orders`, `trades`, `positions`, `pricing`, and `transactions`. By default they use the account ID from `Config`; use methods such as `pricing_for_account("...")` or `orders_for_account("...")` to target another account.
+
+Use `get_json`, `post_json`, `put_json`, `patch_json`, or `request_json` as escape hatches for raw OANDA v20 API calls that return `serde_json::Value`. Streaming endpoints can be opened with `client.pricing().stream("EUR_USD")`, `client.transactions().stream()`, or the lower-level `stream_response`.
+
+The unofficial Labs API does not require a token or account ID:
+
+```rust
+use oanda_cli::labs::{BookType, Instrument, fetch_book};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let order_book = fetch_book(Instrument::EURUSD, BookType::Order, 6).await?;
+    let position_book = fetch_book(Instrument::USDJPY, BookType::Position, 1).await?;
+
+    println!("{order_book}");
+    println!("{position_book}");
+    Ok(())
+}
+```
+
 ### Account
 
 ```sh
