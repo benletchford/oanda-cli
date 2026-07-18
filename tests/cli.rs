@@ -101,7 +101,7 @@ fn environment_variable_selects_practice_for_a_typed_dry_run() {
 }
 
 #[test]
-fn mutations_require_an_explicit_environment() {
+fn mutations_default_to_practice() {
     let output = run(oanda().args([
         "--account-id",
         "101-001-123-001",
@@ -113,17 +113,12 @@ fn mutations_require_an_explicit_environment() {
         "--units",
         "100",
     ]));
-    assert_eq!(output.status.code(), Some(3));
-    assert!(
-        json(&output.stderr)["error"]["message"]
-            .as_str()
-            .unwrap()
-            .contains("explicit environment")
-    );
+    assert!(output.status.success());
+    assert_eq!(json(&output.stdout)["environment"], "practice");
 }
 
 #[test]
-fn live_dry_runs_require_confirmation() {
+fn live_dry_runs_need_no_extra_confirmation() {
     let args = [
         "--environment",
         "live",
@@ -134,12 +129,16 @@ fn live_dry_runs_require_confirmation() {
         "cancel",
         "123",
     ];
-    let rejected = run(oanda().args(args));
-    assert_eq!(rejected.status.code(), Some(3));
+    let output = run(oanda().args(args));
+    assert!(output.status.success());
+    assert_eq!(json(&output.stdout)["environment"], "live");
+}
 
-    let accepted = run(oanda().arg("--confirm-live").args(args));
-    assert!(accepted.status.success());
-    assert_eq!(json(&accepted.stdout)["environment"], "live");
+#[test]
+fn removed_confirm_live_flag_is_rejected() {
+    let output = run(oanda().arg("--confirm-live").args(["account", "list"]));
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(json(&output.stderr)["error"]["kind"], "validation");
 }
 
 #[test]
@@ -147,7 +146,8 @@ fn schema_is_machine_readable_without_credentials() {
     let output = run(oanda().args(["schema", "--json"]));
     assert!(output.status.success());
     let schema = json(&output.stdout);
-    assert_eq!(schema["schemaVersion"], 1);
+    assert_eq!(schema["schemaVersion"], 2);
+    assert!(schema["configuration"]["liveMutationConfirmation"].is_null());
     assert!(
         schema["commands"]
             .as_array()

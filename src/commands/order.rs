@@ -131,28 +131,24 @@ pub async fn execute(
     let account_id = config.require_account_id()?;
     match command {
         OrderCommand::Create { body } => {
-            config.require_mutation_allowed()?;
             let body = read_body(body)?;
             client
                 .post(&format!("/v3/accounts/{account_id}/orders"), body)
                 .await
         }
         OrderCommand::Market(args) => {
-            config.require_mutation_allowed()?;
             let body = market_order_body(args)?;
             client
                 .post(&format!("/v3/accounts/{account_id}/orders"), body)
                 .await
         }
         OrderCommand::Limit(args) => {
-            config.require_mutation_allowed()?;
             let body = pending_order_body("LIMIT", args)?;
             client
                 .post(&format!("/v3/accounts/{account_id}/orders"), body)
                 .await
         }
         OrderCommand::Stop(args) => {
-            config.require_mutation_allowed()?;
             let body = pending_order_body("STOP", args)?;
             client
                 .post(&format!("/v3/accounts/{account_id}/orders"), body)
@@ -206,7 +202,6 @@ pub async fn execute(
             order_specifier,
             body,
         } => {
-            config.require_mutation_allowed()?;
             validate_specifier(&order_specifier, "order specifier")?;
             let body = read_body(body)?;
             client
@@ -217,7 +212,6 @@ pub async fn execute(
                 .await
         }
         OrderCommand::Cancel { order_specifier } => {
-            config.require_mutation_allowed()?;
             validate_specifier(&order_specifier, "order specifier")?;
             client
                 .put(
@@ -230,7 +224,6 @@ pub async fn execute(
             order_specifier,
             body,
         } => {
-            config.require_mutation_allowed()?;
             validate_specifier(&order_specifier, "order specifier")?;
             let body = read_body(body)?;
             client

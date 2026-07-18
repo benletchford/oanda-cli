@@ -34,10 +34,6 @@ struct Cli {
     #[arg(long, global = true)]
     dry_run: bool,
 
-    /// Required acknowledgement for mutations in the live environment
-    #[arg(long, global = true)]
-    confirm_live: bool,
-
     /// Non-streaming request timeout in seconds
     #[arg(long, global = true)]
     request_timeout_secs: Option<u64>,
@@ -140,7 +136,6 @@ async fn run(cli: Cli) -> OandaResult<()> {
         datetime_format,
         pretty,
         dry_run,
-        confirm_live,
         request_timeout_secs,
         connect_timeout_secs,
         command,
@@ -161,7 +156,6 @@ async fn run(cli: Cli) -> OandaResult<()> {
             let config =
                 Config::from_args(token, account_id, environment, datetime_format, pretty)?
                     .with_dry_run(dry_run)
-                    .with_confirm_live(confirm_live)
                     .with_timeouts(request_timeout_secs, connect_timeout_secs)?;
             let client = oanda_cli::OandaClient::new(&config)?;
             execute(&client, &config, command).await

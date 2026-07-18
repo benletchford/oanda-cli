@@ -54,10 +54,8 @@ pub struct Config {
     pub datetime_format: Option<String>,
     pub pretty: bool,
     pub dry_run: bool,
-    pub confirm_live: bool,
     pub request_timeout: Duration,
     pub connect_timeout: Duration,
-    environment_explicit: bool,
 }
 
 impl fmt::Debug for Config {
@@ -73,10 +71,8 @@ impl fmt::Debug for Config {
             .field("datetime_format", &self.datetime_format)
             .field("pretty", &self.pretty)
             .field("dry_run", &self.dry_run)
-            .field("confirm_live", &self.confirm_live)
             .field("request_timeout", &self.request_timeout)
             .field("connect_timeout", &self.connect_timeout)
-            .field("environment_explicit", &self.environment_explicit)
             .finish()
     }
 }
@@ -90,10 +86,8 @@ impl Config {
             datetime_format: None,
             pretty: false,
             dry_run: false,
-            confirm_live: false,
             request_timeout: Duration::from_secs(30),
             connect_timeout: Duration::from_secs(10),
-            environment_explicit: false,
         }
     }
 
@@ -103,7 +97,6 @@ impl Config {
 
     pub fn with_environment(mut self, environment: Environment) -> Self {
         self.environment = environment;
-        self.environment_explicit = true;
         self
     }
 
@@ -119,11 +112,6 @@ impl Config {
 
     pub fn with_dry_run(mut self, dry_run: bool) -> Self {
         self.dry_run = dry_run;
-        self
-    }
-
-    pub fn with_confirm_live(mut self, confirm_live: bool) -> Self {
-        self.confirm_live = confirm_live;
         self
     }
 
@@ -167,7 +155,6 @@ impl Config {
         }
 
         let env_from_var = nonempty(env::var("OANDA_ENVIRONMENT").ok());
-        let environment_explicit = environment.is_some() || env_from_var.is_some();
         let env_str = nonempty(environment).or(env_from_var);
         let environment = match env_str {
             Some(value) => Environment::parse(&value)?,
@@ -191,10 +178,8 @@ impl Config {
             datetime_format,
             pretty,
             dry_run: false,
-            confirm_live: false,
             request_timeout: Duration::from_secs(30),
             connect_timeout: Duration::from_secs(10),
-            environment_explicit,
         })
     }
 
@@ -212,21 +197,6 @@ impl Config {
                 "Account ID required: pass --account-id or set OANDA_ACCOUNT_ID".into(),
             )
         })
-    }
-
-    pub fn require_mutation_allowed(&self) -> OandaResult<()> {
-        if !self.environment_explicit {
-            return Err(OandaError::Config(
-                "Mutations require an explicit environment: pass --environment or set OANDA_ENVIRONMENT"
-                    .into(),
-            ));
-        }
-        if self.environment == Environment::Live && !self.confirm_live {
-            return Err(OandaError::Config(
-                "Live mutations require --confirm-live".into(),
-            ));
-        }
-        Ok(())
     }
 }
 
@@ -278,15 +248,9 @@ mod tests {
     }
 
     #[test]
-    fn live_mutations_need_confirmation() {
-        let config = Config::new("token", "101-001-123-001").with_environment(Environment::Live);
-        assert!(config.require_mutation_allowed().is_err());
-        assert!(
-            config
-                .with_confirm_live(true)
-                .require_mutation_allowed()
-                .is_ok()
-        );
+    fn new_configuration_defaults_to_practice() {
+        let config = Config::new("token", "101-001-123-001");
+        assert_eq!(config.environment, Environment::Practice);
     }
 
     #[test]

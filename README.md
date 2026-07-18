@@ -2,7 +2,7 @@
 
 A small, machine-friendly CLI and Rust library for the [OANDA v20 REST API](https://developer.oanda.com/rest-live-v20/introduction/). Successful non-streaming responses are JSON, streams are NDJSON by default, and runtime errors are structured JSON on stderr.
 
-The CLI keeps raw endpoint access available while adding typed commands, validation, dry runs, explicit live-trading safeguards, bounded I/O, and stable exit codes.
+The CLI keeps raw endpoint access available while adding typed commands, validation, dry runs, predictable environment selection, bounded I/O, and stable exit codes.
 
 ## Install
 
@@ -43,17 +43,15 @@ export OANDA_ENVIRONMENT="practice"
 
 Generate a token in OANDA fxTrade under **My Services > Manage API Access**.
 
-### Environment and mutation safeguards
+### Environment selection
 
-Read-only commands default to the practice environment when neither the flag nor environment variable is set. Every mutation requires an explicit environment through `--environment` or `OANDA_ENVIRONMENT`.
-
-Live mutations additionally require `--confirm-live`:
+All commands default to the practice environment when neither the flag nor environment variable is set. Set `--environment live` or `OANDA_ENVIRONMENT=live` to use a live account.
 
 ```sh
-oanda --environment live --confirm-live order cancel 6357
+oanda --environment live order cancel 6357
 ```
 
-This is an acknowledgement guard, not an interactive prompt. Scripts remain deterministic.
+There is no separate live-confirmation flag; environment selection is deterministic and suitable for automation.
 
 ## Agent-friendly interfaces
 
@@ -83,7 +81,7 @@ Typed order commands support `market`, `limit`, and `stop`, along with position-
 
 ### Dry runs
 
-`--dry-run` validates a mutation and prints its method, endpoint, environment, query, and redacted body without making a network request. A token is not required, but the account ID and explicit environment still are.
+`--dry-run` validates a mutation and prints its method, endpoint, environment, query, and redacted body without making a network request. A token is not required, but the account ID still is.
 
 ```sh
 oanda --environment practice --account-id 101-001-12345678-001 --dry-run \
@@ -131,7 +129,7 @@ Runtime errors are emitted as one JSON object on stderr:
   "error": {
     "exitCode": 3,
     "kind": "configuration",
-    "message": "Live mutations require --confirm-live"
+    "message": "Access token required: pass --token or set OANDA_ACCESS_TOKEN"
   }
 }
 ```

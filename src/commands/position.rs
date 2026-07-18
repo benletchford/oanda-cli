@@ -62,7 +62,6 @@ pub async fn execute(
             short_units,
             body,
         } => {
-            config.require_mutation_allowed()?;
             validate_instrument(&instrument)?;
             let body = if long_units.is_some() || short_units.is_some() {
                 let long_units = long_units.unwrap_or_else(|| "NONE".into());

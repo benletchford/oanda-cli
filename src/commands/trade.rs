@@ -108,7 +108,6 @@ pub async fn execute(client: &OandaClient, config: &Config, cmd: TradeCommand) -
             units,
             body,
         } => {
-            config.require_mutation_allowed()?;
             validate_specifier(&trade_specifier, "trade specifier")?;
             let body = match (units, body) {
                 (Some(units), None) => {
@@ -134,7 +133,6 @@ pub async fn execute(client: &OandaClient, config: &Config, cmd: TradeCommand) -
             trade_specifier,
             body,
         } => {
-            config.require_mutation_allowed()?;
             validate_specifier(&trade_specifier, "trade specifier")?;
             let body = read_body(body)?;
             client
@@ -148,7 +146,6 @@ pub async fn execute(client: &OandaClient, config: &Config, cmd: TradeCommand) -
             trade_specifier,
             body,
         } => {
-            config.require_mutation_allowed()?;
             validate_specifier(&trade_specifier, "trade specifier")?;
             let body = read_body(body)?;
             client

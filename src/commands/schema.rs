@@ -224,15 +224,14 @@ pub fn document() -> Value {
     ];
 
     json!({
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "name": "oanda",
         "version": env!("CARGO_PKG_VERSION"),
         "output": { "success": "JSON", "streams": "NDJSON", "errors": "JSON on stderr" },
         "configuration": {
             "accessToken": { "flag": "--token", "environment": "OANDA_ACCESS_TOKEN" },
             "accountId": { "flag": "--account-id", "environment": "OANDA_ACCOUNT_ID" },
-            "environment": { "flag": "--environment", "variable": "OANDA_ENVIRONMENT", "values": ["practice", "live"], "defaultForReads": "practice", "explicitForMutations": true },
-            "liveMutationConfirmation": "--confirm-live",
+            "environment": { "flag": "--environment", "variable": "OANDA_ENVIRONMENT", "values": ["practice", "live"], "default": "practice" },
             "dryRun": "--dry-run"
         },
         "exitCodes": {
