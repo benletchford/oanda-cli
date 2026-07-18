@@ -1,6 +1,6 @@
 # oanda-cli
 
-A small, machine-friendly CLI and Rust library for the [OANDA v20 REST API](https://developer.oanda.com/rest-live-v20/introduction/). Successful responses are JSON, streaming responses are NDJSON, and runtime errors are structured JSON on stderr.
+A small, machine-friendly CLI and Rust library for the [OANDA v20 REST API](https://developer.oanda.com/rest-live-v20/introduction/). Successful non-streaming responses are JSON, streams are NDJSON by default, and runtime errors are structured JSON on stderr.
 
 The CLI keeps raw endpoint access available while adding typed commands, validation, dry runs, explicit live-trading safeguards, bounded I/O, and stable exit codes.
 
@@ -112,7 +112,7 @@ oanda --environment practice --account-id 101-001-12345678-001 --dry-run \
 
 ### Machine-readable schema
 
-`oanda schema --json` needs no credentials and describes commands, parameters, mutation classification, examples, configuration, output formats, and exit codes.
+`oanda schema --json` needs no credentials and describes commands, key parameters, mutation classification, examples, configuration, output formats, and exit codes.
 
 ### Consolidated inspection
 
@@ -246,7 +246,7 @@ oanda trade open | jq -r '.trades[].id'
 oanda instrument candles EUR_USD --granularity D --count 365 > candles.json
 ```
 
-Add `--pretty` to format non-streaming JSON for inspection.
+Add `--pretty` to format non-streaming JSON and individual stream events for inspection. Pretty stream events can span multiple lines, so leave it off when piping to an NDJSON consumer.
 
 ## Rust library
 
@@ -254,7 +254,7 @@ The package exposes a library crate named `oanda_cli`:
 
 ```toml
 [dependencies]
-oanda-cli = "0.1"
+oanda-cli = "0.2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 ```
 
