@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release_please:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      release_sha: ${{ steps.release.outputs.sha }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@8b8fd2cc23b2e18957157a9d923d75aa0c6f6ad5 # v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish-crate:
+    needs: release_please
+    if: needs.release_please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ needs.release_please.outputs.release_sha }}
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          toolchain: stable
+      - run: cargo publish --locked
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  upload-binaries:
+    needs: release_please
+    if: needs.release_please.outputs.release_created == 'true'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            build-tool: cross
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+            build-tool: cross
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            build-tool: cargo
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            build-tool: cargo
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            build-tool: cargo
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ needs.release_please.outputs.release_sha }}
+      - uses: taiki-e/upload-rust-binary-action@f0d45ae91ee7b8ee928de7a9d04d893a08bcbec6 # v1
+        with:
+          bin: oanda
+          target: ${{ matrix.target }}
+          build-tool: ${{ matrix.build-tool }}
+          locked: true
+          archive: oanda-${{ needs.release_please.outputs.tag_name }}-${{ matrix.target }}
+          checksum: sha256
+          include: LICENSE,README.md
+          ref: refs/tags/${{ needs.release_please.outputs.tag_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}

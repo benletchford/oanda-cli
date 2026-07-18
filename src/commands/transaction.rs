@@ -1,6 +1,6 @@
 use clap::Subcommand;
 
-use crate::client::OandaClient;
+use crate::client::{OandaClient, OandaResult};
 use crate::config::Config;
 
 #[derive(Subcommand)]
@@ -54,7 +54,7 @@ pub async fn execute(
     client: &OandaClient,
     config: &Config,
     cmd: TransactionCommand,
-) -> Result<(), String> {
+) -> OandaResult<()> {
     let id = config.require_account_id()?;
     match cmd {
         TransactionCommand::List {

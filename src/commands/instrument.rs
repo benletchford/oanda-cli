@@ -1,6 +1,7 @@
 use clap::Subcommand;
 
-use crate::client::OandaClient;
+use crate::client::{OandaClient, OandaResult};
+use crate::commands::common::validate_instrument;
 
 #[derive(Subcommand)]
 pub enum InstrumentCommand {
@@ -41,7 +42,7 @@ pub enum InstrumentCommand {
     },
 }
 
-pub async fn execute(client: &OandaClient, cmd: InstrumentCommand) -> Result<(), String> {
+pub async fn execute(client: &OandaClient, cmd: InstrumentCommand) -> OandaResult<()> {
     match cmd {
         InstrumentCommand::Candles {
             instrument,
@@ -56,6 +57,7 @@ pub async fn execute(client: &OandaClient, cmd: InstrumentCommand) -> Result<(),
             alignment_timezone,
             weekly_alignment,
         } => {
+            validate_instrument(&instrument)?;
             let mut query: Vec<(&str, &str)> = vec![];
             if let Some(ref v) = price {
                 query.push(("price", v));

@@ -1,6 +1,6 @@
 use clap::Subcommand;
 
-use crate::client::{OandaClient, read_body};
+use crate::client::{OandaClient, OandaResult, read_body};
 use crate::config::Config;
 
 #[derive(Subcommand)]
@@ -35,7 +35,7 @@ pub async fn execute(
     client: &OandaClient,
     config: &Config,
     cmd: AccountCommand,
-) -> Result<(), String> {
+) -> OandaResult<()> {
     match cmd {
         AccountCommand::List => client.get("/v3/accounts", &[]).await,
         AccountCommand::Get => {
@@ -57,6 +57,7 @@ pub async fn execute(
                 .await
         }
         AccountCommand::Configure { body } => {
+            config.require_mutation_allowed()?;
             let id = config.require_account_id()?;
             let body = read_body(body)?;
             client

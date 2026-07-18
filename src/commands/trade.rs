@@ -1,6 +1,9 @@
 use clap::Subcommand;
 
-use crate::client::{OandaClient, read_body};
+use serde_json::json;
+
+use crate::client::{OandaClient, OandaError, OandaResult, read_body};
+use crate::commands::common::{validate_decimal, validate_specifier};
 use crate::config::Config;
 
 #[derive(Subcommand)]
@@ -34,8 +37,11 @@ pub enum TradeCommand {
     Close {
         /// Trade specifier to close
         trade_specifier: String,
-        /// JSON request body for partial close (reads from stdin if omitted; omit entirely for full close)
-        #[arg(long)]
+        /// Positive units to close; omit for a full close
+        #[arg(long, conflicts_with = "body")]
+        units: Option<String>,
+        /// Raw JSON request body escape hatch
+        #[arg(long, conflicts_with = "units")]
         body: Option<String>,
     },
     /// Update client extensions on a trade
@@ -56,11 +62,7 @@ pub enum TradeCommand {
     },
 }
 
-pub async fn execute(
-    client: &OandaClient,
-    config: &Config,
-    cmd: TradeCommand,
-) -> Result<(), String> {
+pub async fn execute(client: &OandaClient, config: &Config, cmd: TradeCommand) -> OandaResult<()> {
     let id = config.require_account_id()?;
     match cmd {
         TradeCommand::List {
@@ -96,15 +98,31 @@ pub async fn execute(
                 .await
         }
         TradeCommand::Get { trade_specifier } => {
+            validate_specifier(&trade_specifier, "trade specifier")?;
             client
                 .get(&format!("/v3/accounts/{id}/trades/{trade_specifier}"), &[])
                 .await
         }
         TradeCommand::Close {
             trade_specifier,
+            units,
             body,
         } => {
-            let body = body.map(|b| read_body(Some(b))).transpose()?;
+            config.require_mutation_allowed()?;
+            validate_specifier(&trade_specifier, "trade specifier")?;
+            let body = match (units, body) {
+                (Some(units), None) => {
+                    validate_decimal(&units, "units", false)?;
+                    Some(json!({ "units": units }))
+                }
+                (None, Some(body)) => Some(read_body(Some(body))?),
+                (None, None) => None,
+                (Some(_), Some(_)) => {
+                    return Err(OandaError::Validation(
+                        "Use either --units or --body, not both".into(),
+                    ));
+                }
+            };
             client
                 .put(
                     &format!("/v3/accounts/{id}/trades/{trade_specifier}/close"),
@@ -116,6 +134,8 @@ pub async fn execute(
             trade_specifier,
             body,
         } => {
+            config.require_mutation_allowed()?;
+            validate_specifier(&trade_specifier, "trade specifier")?;
             let body = read_body(body)?;
             client
                 .put(
@@ -128,6 +148,8 @@ pub async fn execute(
             trade_specifier,
             body,
         } => {
+            config.require_mutation_allowed()?;
+            validate_specifier(&trade_specifier, "trade specifier")?;
             let body = read_body(body)?;
             client
                 .put(

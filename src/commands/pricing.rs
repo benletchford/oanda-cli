@@ -1,6 +1,7 @@
 use clap::Subcommand;
 
-use crate::client::OandaClient;
+use crate::client::{OandaClient, OandaResult};
+use crate::commands::common::validate_instrument;
 use crate::config::Config;
 
 #[derive(Subcommand)]
@@ -97,7 +98,7 @@ pub async fn execute(
     client: &OandaClient,
     config: &Config,
     cmd: PricingCommand,
-) -> Result<(), String> {
+) -> OandaResult<()> {
     let id = config.require_account_id()?;
     match cmd {
         PricingCommand::Get {
@@ -106,6 +107,7 @@ pub async fn execute(
             include_units_available,
             include_home_conversions,
         } => {
+            validate_instrument_list(&instruments)?;
             let mut query: Vec<(&str, &str)> = vec![("instruments", &instruments)];
             if let Some(ref v) = since {
                 query.push(("since", v));
@@ -125,6 +127,7 @@ pub async fn execute(
             snapshot,
             include_home_conversions,
         } => {
+            validate_instrument_list(&instruments)?;
             let mut query: Vec<(&str, &str)> = vec![("instruments", &instruments)];
             if snapshot {
                 query.push(("snapshot", "true"));
@@ -179,6 +182,7 @@ pub async fn execute(
             weekly_alignment,
             units,
         } => {
+            validate_instrument(&instrument)?;
             let mut query: Vec<(&str, &str)> = vec![];
             if let Some(ref v) = price {
                 query.push(("price", v));
@@ -221,4 +225,13 @@ pub async fn execute(
                 .await
         }
     }
+}
+
+fn validate_instrument_list(value: &str) -> OandaResult<()> {
+    if value.is_empty() {
+        return Err(crate::client::OandaError::Validation(
+            "At least one instrument is required".into(),
+        ));
+    }
+    value.split(',').try_for_each(validate_instrument)
 }

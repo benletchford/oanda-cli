@@ -120,6 +120,11 @@ pub async fn fetch_book(
     book_type: BookType,
     recent_hours: i32,
 ) -> OandaResult<serde_json::Value> {
+    if !(1..=168).contains(&recent_hours) {
+        return Err(OandaError::Validation(
+            "recent_hours must be between 1 and 168".into(),
+        ));
+    }
     let request = GraphQLRequest {
         operation_name: "GetOrderPositionBook".to_string(),
         variables: GraphQLRequestVariables {
@@ -131,6 +136,9 @@ pub async fn fetch_book(
     };
 
     let http = reqwest::Client::builder()
+        .connect_timeout(std::time::Duration::from_secs(10))
+        .timeout(std::time::Duration::from_secs(30))
+        .user_agent(concat!("oanda-cli/", env!("CARGO_PKG_VERSION")))
         .gzip(true)
         .deflate(true)
         .brotli(true)
@@ -164,25 +172,35 @@ pub async fn fetch_book(
         return Err(OandaError::Api { status, body });
     }
 
+    if body
+        .get("errors")
+        .is_some_and(|errors| errors.as_array().is_none_or(|errors| !errors.is_empty()))
+    {
+        return Err(OandaError::Response(format!(
+            "OANDA Labs GraphQL returned errors: {}",
+            body["errors"]
+        )));
+    }
+
     Ok(body)
 }
 
-pub async fn execute(pretty: bool, cmd: LabsCommand) -> Result<(), String> {
+pub async fn execute(pretty: bool, cmd: LabsCommand) -> OandaResult<()> {
     match cmd {
         LabsCommand::Book {
             instrument,
             book_type,
             recent_hours,
         } => {
-            let body = fetch_book(instrument, book_type, recent_hours)
-                .await
-                .map_err(|e| e.to_string())?;
+            let body = fetch_book(instrument, book_type, recent_hours).await?;
 
-            if pretty {
-                println!("{}", serde_json::to_string_pretty(&body).unwrap());
+            let output = if pretty {
+                serde_json::to_string_pretty(&body)
             } else {
-                println!("{body}");
+                serde_json::to_string(&body)
             }
+            .map_err(OandaError::Json)?;
+            println!("{output}");
             Ok(())
         }
     }

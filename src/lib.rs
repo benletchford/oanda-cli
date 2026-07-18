@@ -28,5 +28,5 @@ pub mod labs {
 }
 
 pub use api::*;
-pub use client::{OandaClient, OandaError, OandaResult, read_body};
+pub use client::{ErrorKind, OandaClient, OandaError, OandaResult, read_body};
 pub use config::{Config, Environment};
