@@ -18,7 +18,7 @@ Or from this checkout:
 cargo install --locked --path .
 ```
 
-GitHub releases include versioned archives and SHA-256 checksum files for Linux x86-64/ARM64 (static musl builds), macOS x86-64/ARM64, and Windows x86-64.
+GitHub releases include versioned archives and SHA-256 checksum files for Linux x86-64/ARM64 (static musl builds), macOS x86-64/ARM64, and Windows x86-64/ARM64.
 
 ## Configuration
 
