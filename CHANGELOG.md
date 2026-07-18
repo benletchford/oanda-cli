@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/benletchford/oanda-cli/compare/oanda-cli-v0.2.0...oanda-cli-v0.3.0) (2026-07-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove mutation confirmation guards
+
+### Features
+
+* remove mutation confirmation guards ([1d57d14](https://github.com/benletchford/oanda-cli/commit/1d57d14734d09b1915ba820dc8e55d642c636381))
+
 ## [0.2.0](https://github.com/benletchford/oanda-cli/compare/oanda-cli-v0.1.1...oanda-cli-v0.2.0) (2026-07-18)
 
 
