@@ -1,6 +1,6 @@
 [package]
 name = "oanda-cli"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.85"
 description = "A thin CLI wrapper around the OANDA v20 REST API"
