@@ -26,6 +26,7 @@ reqwest = { version = "0.12", default-features = false, features = [
     "deflate",
     "brotli",
     "rustls-tls",
+    "rustls-tls-native-roots",
 ] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
 serde = { version = "1", features = ["derive"] }
@@ -36,6 +37,7 @@ futures-util = "0.3"
 assert_cmd = "2"
 predicates = "3"
 wiremock = "0.6"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 
 [profile.release]
 codegen-units = 1

@@ -43,6 +43,24 @@ export OANDA_ENVIRONMENT="practice"
 
 Generate a token in OANDA fxTrade under **My Services > Manage API Access**.
 
+### Proxies and TLS certificates
+
+All HTTPS clients (REST, streaming, and Labs) use Rustls with both bundled
+WebPKI roots and native system trust roots. OpenSSL is not required, including
+for the static Linux builds. Certificate and hostname verification stay enabled.
+
+For a trusted corporate proxy or a private CA, set `SSL_CERT_FILE` to a PEM CA
+bundle and/or `SSL_CERT_DIR` to a directory containing PEM CA certificates.
+These variables override native certificate discovery; bundled public roots are
+still included. Use only CA certificates you trust. Missing or empty native
+stores leave bundled roots available; invalid certificates can cause client
+initialization to fail.
+
+Standard `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, and `NO_PROXY` environment
+variables (and their lowercase forms) are handled by reqwest. No explicit proxy
+flag is needed. If a proxy intercepts HTTPS, its CA must be trusted through the
+system store or the certificate variables above; do not disable TLS verification.
+
 ### Environment selection
 
 All commands default to the practice environment when neither the flag nor environment variable is set. Set `--environment live` or `OANDA_ENVIRONMENT=live` to use a live account.
