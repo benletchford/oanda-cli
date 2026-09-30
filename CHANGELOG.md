@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/benletchford/oanda-cli/compare/oanda-cli-v0.3.0...oanda-cli-v0.3.1) (2026-09-30)
+
+
+### Bug Fixes
+
+* **client:** trust native and custom CA certificates ([4dd1d4d](https://github.com/benletchford/oanda-cli/commit/4dd1d4d0686b7700dc347ceff697a2e43ed63cdf))
+
 ## [0.3.0](https://github.com/benletchford/oanda-cli/compare/oanda-cli-v0.2.0...oanda-cli-v0.3.0) (2026-07-18)
 
 
